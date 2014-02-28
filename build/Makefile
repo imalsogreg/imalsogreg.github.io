@@ -12,4 +12,4 @@ install:
 	cabal configure
 	cabal install
 	$(PROG) build
-	cp -r _site ../
+	cp -r _site/* ../
