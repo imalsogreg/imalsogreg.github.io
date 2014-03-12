@@ -2,11 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.Monoid (mappend)
 import           Hakyll
-
+import           HakyllBibTex
+import           Text.Pandoc.Definition
+import           Debug.Trace
 
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
+
     match "images/**" $ do
         route   idRoute
         compile copyFileCompiler
@@ -21,12 +24,26 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
+
+    match "auxdata/gallistel.bib" $ do
+        compile biblioCompiler
+
+    match "auxdata/apa.csl" $ do
+        compile cslCompiler
+
+
     match "posts/*" $ do
         route $ setExtension "html"
-        compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    postCtx
-            >>= loadAndApplyTemplate "templates/default.html" postCtx
-            >>= relativizeUrls
+        compile $ do
+          bib <- load "auxdata/gallistel.bib"
+          csl <- load "auxdata/apa.csl"
+          
+          a <- pandocCompiler
+          d <-readPandocBiblio defaultHakyllReaderOptions csl bib a
+          b <- loadAndApplyTemplate "templates/post.html"    postCtx $ (writePandoc d)
+          c <- loadAndApplyTemplate "templates/default.html" postCtx $ b
+
+          relativizeUrls c
 
     create ["archive.html"] $ do
         route idRoute

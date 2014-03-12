@@ -17,9 +17,18 @@ cabal-version:       >=1.10
 
 executable webglog
   main-is:             site.hs
-  -- other-modules:       
+  other-modules:       HakyllBibTex
   -- other-extensions:    
   build-depends:       base >=4.6 && <4.7,
-                       hakyll
+                       optparse-applicative >=0.7 && <0.8,
+                       text >=1.1 && <1.2,
+                       containers,
+                       safe >=0.3 && <0.4,
+                       parsec,
+                       bibtex >=0.1 && < 0.2,
+                       hakyll >=4.4 && <4.5,
+                       binary,
+                       pandoc-types,
+                       pandoc == 1.9.3
   -- hs-source-dirs:      
   default-language:    Haskell2010
