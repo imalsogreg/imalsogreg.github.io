@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.Monoid (mappend)
 import           Hakyll
-import           HakyllBibTex
+--import           HakyllBibTex
 import           Text.Pandoc.Definition
 import           Debug.Trace
 
@@ -24,9 +24,28 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
+{-
+    names <- preprocess $ do
+      bibFile <- parseBibFile <$> readFile "auxdata/gallistel.bib"
+      return bibFileEntryNames bibFile
 
     match "auxdata/gallistel.bib" $ do
+      route idRoute
+      compile bibFileCompiler
+
+    forM_ names $ \name -> do
+      create [fromCapture "papers/*.html" name] $ do
+        route idRoute
+        compile $ do
+          bibFile <- loadBody "auxdata/gallistel.bib"
+          let bibEntry = lookupBibEntry name bibFile 
+          makeItem bibEntry >>=
+            loadAndApplyTemplate "paper.html" bibEntryContext
+-}
+    match "auxdata/gallistel.bib" $ do
+        route idRoute
         compile biblioCompiler
+
 
     match "auxdata/apa.csl" $ do
         compile cslCompiler
@@ -37,13 +56,15 @@ main = hakyll $ do
         compile $ do
           bib <- load "auxdata/gallistel.bib"
           csl <- load "auxdata/apa.csl"
-          
+          pandocCompiler 
+{-          
           a <- pandocCompiler
           d <-readPandocBiblio defaultHakyllReaderOptions csl bib a
           b <- loadAndApplyTemplate "templates/post.html"    postCtx $ (writePandoc d)
           c <- loadAndApplyTemplate "templates/default.html" postCtx $ b
 
           relativizeUrls c
+-}
 
     create ["archive.html"] $ do
         route idRoute
