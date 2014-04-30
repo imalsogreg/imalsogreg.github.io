@@ -41,7 +41,7 @@ main = hakyll $ do
           let bibEntry = lookupBibEntry name bibFile 
           makeItem bibEntry >>=
             loadAndApplyTemplate "paper.html" bibEntryContext
--}
+
     match "auxdata/gallistel.bib" $ do
         route idRoute
         compile biblioCompiler
@@ -49,22 +49,15 @@ main = hakyll $ do
 
     match "auxdata/apa.csl" $ do
         compile cslCompiler
-
+-}
 
     match "posts/*" $ do
         route $ setExtension "html"
-        compile $ do
-          bib <- load "auxdata/gallistel.bib"
-          csl <- load "auxdata/apa.csl"
-          pandocCompiler 
-{-          
-          a <- pandocCompiler
-          d <-readPandocBiblio defaultHakyllReaderOptions csl bib a
-          b <- loadAndApplyTemplate "templates/post.html"    postCtx $ (writePandoc d)
-          c <- loadAndApplyTemplate "templates/default.html" postCtx $ b
+        compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/post.html"    postCtx
+            >>= loadAndApplyTemplate "templates/default.html" postCtx
+            >>= relativizeUrls
 
-          relativizeUrls c
--}
 
     create ["archive.html"] $ do
         route idRoute

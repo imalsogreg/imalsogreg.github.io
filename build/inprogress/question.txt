@@ -1,0 +1,44 @@
+can be optimistic, prob we're trying to solve is solved in soft eng.
+
+Github makes code sharing trivial, modification, attribution.
+
+It's free for sharers - because companies pay for privacy.
+
+
+TravicCI is a platform for running experiments - experiment of whether code continues to work when upsteam code changes, computers change, etc.  You never see AWS - it takes care of AWS for you.
+
+It's free.
+
+
+None of it works when proprietary software is introduced.  THe 
+
+Q1: who is looking at the tech answers to port into neuroscience sharing?
+
+Q2: as Yuan says, the only real roadblock is community buy-in.  Will Science support buy-in?
+
+Q3: when can science publish data papers?
+
+Answers to my question: MM - try Nature Data
+Yuan: journal for netagive results
+
+
+
+After Georgio's talk:
+
+Q1: Open data comes with benefits (sharing), and risks (getting scooped).  Developing software has parallel benefits and risks.  Is the code for NeuroMorpho.org available to the public?  If not, is there some difference between data and code that contributes to the difference in the open access to data and the open access to the code of the website?
+
+A: Answer was about NeuroMorpho.org conference talk, or FAQ on the site (can't remember which), in which Georgio addressed many of the common concerns about sharing data: that sharing data leads to more publications, and it almost never leads to getting scooped.
+
+Followup Q: About the benefits of open-source, did you get any good contributions to NeuroMorpho.org, because the code was open-sourced?
+
+A: Yes - lots of input on CvApp 3d neuron viewer code.  Shared code between NeuroMorpho and Janelia.
+
+
+
+After speaker panel on building the road forward:
+
+Q: I just want to share my experience with a couple software platforms, because they speak to the problems that you (panel chair #2 - Jennifer Buss), and Rita brought up.  Github largely solves the problem you brought up first, of how to protect against nefarious users of open data.  Github provides a platform for managing versioning of code, and for managing the experimental branches of code - a single code base might have 10 or 20 experimental branches that are all mutually exclusive, and it's the software package git that allows all of these experimental branches to be managed.  That's how the linux kernel was written by a group of programmers on different continents who weren't really talking to each other - git manages the complexity of all that collaboration.  The founders of Github never had to take a government grant, and they never got any VC money, because the platform that they made was so useful that private companies, who want to pay for privacy, could cover all of the operating costs.  Users who open their code don't pay anything to use github.  That's a business model that could be used for a platform for open access data.
+
+Another piece of software I want to plug is TravisCI. Travis addresses Michael's concern that we can't store all data, because, if we were storing data on tape for example, the tape becomes obsolete.  Travis is a platform for running virtual computers on real machines, so that you can keep track, as the machines evolve, and the libraries that some piece of analysis code depends on evolve, you can test whether or not that code continues to work.  Virtualization makes it possible to support code forever.  Even if you wrote your original analysis code for a Nintendo, you could simulate the Nintendo in a virtual machine and it will still work.  So virtualization could be a nice building block for systems that future-proof open access code.
+
+Michael's response: Yes that's true.  But you have to remember than most scientists won't be able do that sort of thing.
