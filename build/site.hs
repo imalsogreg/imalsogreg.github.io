@@ -1,10 +1,8 @@
---------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+module Main where
+
 import           Data.Monoid (mappend)
 import           Hakyll
---import           HakyllBibTex
-import           Text.Pandoc.Definition
-import           Debug.Trace
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -18,38 +16,15 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
-    match (fromList ["about.rst", "contact.markdown"]) $ do
+    match (fromList ["*.rst", "*.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
-
-{-
-    names <- preprocess $ do
-      bibFile <- parseBibFile <$> readFile "auxdata/gallistel.bib"
-      return bibFileEntryNames bibFile
-
-    match "auxdata/gallistel.bib" $ do
+    
+    match "slides/**" $ do
       route idRoute
-      compile bibFileCompiler
-
-    forM_ names $ \name -> do
-      create [fromCapture "papers/*.html" name] $ do
-        route idRoute
-        compile $ do
-          bibFile <- loadBody "auxdata/gallistel.bib"
-          let bibEntry = lookupBibEntry name bibFile 
-          makeItem bibEntry >>=
-            loadAndApplyTemplate "paper.html" bibEntryContext
-
-    match "auxdata/gallistel.bib" $ do
-        route idRoute
-        compile biblioCompiler
-
-
-    match "auxdata/apa.csl" $ do
-        compile cslCompiler
--}
+      compile copyFileCompiler
 
     match "posts/*" $ do
         route $ setExtension "html"
@@ -57,7 +32,6 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/post.html"    postCtx
             >>= loadAndApplyTemplate "templates/default.html" postCtx
             >>= relativizeUrls
-
 
     create ["archive.html"] $ do
         route idRoute
@@ -72,8 +46,6 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
                 >>= loadAndApplyTemplate "templates/default.html" archiveCtx
                 >>= relativizeUrls
-
-
 
     match "index.html" $ do
         route idRoute
