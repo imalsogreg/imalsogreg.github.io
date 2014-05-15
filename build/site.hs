@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.Monoid (mappend)
 import           Hakyll
---import           HakyllBibTex
 import           Text.Pandoc.Definition
 import           Debug.Trace
 
@@ -10,65 +9,31 @@ import           Debug.Trace
 main :: IO ()
 main = hakyll $ do
 
-    match "images/**" $ do
+  match "images/**" $ do
         route   idRoute
         compile copyFileCompiler
 
-    match "css/*" $ do
+  match "css/*" $ do
         route   idRoute
         compile compressCssCompiler
 
-    match (fromList ["about.rst", "contact.markdown"]) $ do
+  match (fromList ["about.rst", "contact.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
-{-
-    names <- preprocess $ do
-      bibFile <- parseBibFile <$> readFile "auxdata/gallistel.bib"
-      return bibFileEntryNames bibFile
-
-    match "auxdata/gallistel.bib" $ do
-      route idRoute
-      compile bibFileCompiler
-
-    forM_ names $ \name -> do
-      create [fromCapture "papers/*.html" name] $ do
-        route idRoute
-        compile $ do
-          bibFile <- loadBody "auxdata/gallistel.bib"
-          let bibEntry = lookupBibEntry name bibFile 
-          makeItem bibEntry >>=
-            loadAndApplyTemplate "paper.html" bibEntryContext
--}
-    match "auxdata/gallistel.bib" $ do
-        route idRoute
-        compile biblioCompiler
-
-
-    match "auxdata/apa.csl" $ do
-        compile cslCompiler
-
-
-    match "posts/*" $ do
-        route $ setExtension "html"
-        compile $ do
-          bib <- load "auxdata/gallistel.bib"
-          csl <- load "auxdata/apa.csl"
-          pandocCompiler 
-{-          
-          a <- pandocCompiler
-          d <-readPandocBiblio defaultHakyllReaderOptions csl bib a
-          b <- loadAndApplyTemplate "templates/post.html"    postCtx $ (writePandoc d)
-          c <- loadAndApplyTemplate "templates/default.html" postCtx $ b
-
-          relativizeUrls c
--}
-
-    create ["archive.html"] $ do
-        route idRoute
-        compile $ do
+  match "posts/*" $ do
+    route $ setExtension "html"
+    compile $ pandocCompiler
+          >>= loadAndApplyTemplate "templates/post.html"    postCtx
+          >>= loadAndApplyTemplate "templates/default.html" postCtx
+          >>= relativizeUrls
+          
+          
+  create ["archive.html"] $ do
+          route idRoute
+          compile $ do
             posts <- recentFirst =<< loadAll "posts/*"
             let archiveCtx =
                     listField "posts" postCtx (return posts) `mappend`
@@ -82,7 +47,7 @@ main = hakyll $ do
 
 
 
-    match "index.html" $ do
+  match "index.html" $ do
         route idRoute
         compile $ do
             posts <- recentFirst =<< loadAll "posts/*"
@@ -96,7 +61,7 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/default.html" indexCtx
                 >>= relativizeUrls
 
-    match "templates/*" $ compile templateCompiler
+  match "templates/*" $ compile templateCompiler
 
 
 --------------------------------------------------------------------------------
