@@ -1,9 +1,8 @@
---------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+module Main where
+
 import           Data.Monoid (mappend)
 import           Hakyll
-import           Text.Pandoc.Definition
-import           Debug.Trace
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -17,35 +16,47 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
-  match (fromList ["about.rst", "contact.markdown"]) $ do
+  match "js/*" $ do
+    route idRoute
+    compile copyFileCompiler
+
+  match (fromList ["*.rst", "*.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/default.html" defaultContext
-            >>= relativizeUrls
+          >>= loadAndApplyTemplate "templates/default.html" defaultContext
+          >>= relativizeUrls
 
   match "posts/*" $ do
     route $ setExtension "html"
     compile $ pandocCompiler
-          >>= loadAndApplyTemplate "templates/post.html"    postCtx
-          >>= loadAndApplyTemplate "templates/default.html" postCtx
-          >>= relativizeUrls
-          
-          
+      >>= loadAndApplyTemplate "templates/post.html"    postCtx
+      >>= loadAndApplyTemplate "templates/default.html" postCtx
+      >>= relativizeUrls
+
+  match "slides/**" $ do
+    route idRoute
+    compile copyFileCompiler
+
+  match "slides/*.html" $ do
+    route idRoute
+    let a = relativizeUrls :: Item String -> Compiler (Item String)
+        b = copyFileCompiler :: Compiler (Item CopyFile)
+        c = pandocCompiler :: Compiler (Item String)
+    compile $  pandocCompiler >>= relativizeUrls
+  
   create ["archive.html"] $ do
-          route idRoute
-          compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
-            let archiveCtx =
-                    listField "posts" postCtx (return posts) `mappend`
-                    constField "title" "Archives"            `mappend`
-                    defaultContext
+    route idRoute
+    compile $ do
+      posts <- recentFirst =<< loadAll "posts/*"
+      let archiveCtx =
+            listField "posts" postCtx (return posts) `mappend`
+            constField "title" "Archives"            `mappend`
+            defaultContext
 
-            makeItem ""
-                >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                >>= loadAndApplyTemplate "templates/default.html" archiveCtx
-                >>= relativizeUrls
-
-
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+        >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+        >>= relativizeUrls
 
   match "index.html" $ do
         route idRoute

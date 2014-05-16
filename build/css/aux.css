@@ -1,9 +1,11 @@
 
+
 #content {
     margin: 0 auto;
     padding-top:70px;
     width: 70%;
     font-size:14pt;
+    font-family: 'Pontano Sans', sans-serif;
 }
 
 div#footer {

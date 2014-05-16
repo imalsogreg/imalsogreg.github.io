@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Concurrency in Haskell with STM</title>
+
+		<meta name="description" content="Or: Lock-free Algorithms for Birdwatchers">
+		<meta name="author" content="Greg Hale">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/night.css" id="theme">
+		<link rel="stylesheet" href="css/style.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = '/css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+p		<![endif]-->
+	</head>
+
+	<body>
+
+	  <div class="reveal">
+	    
+	    <!-- Any section element inside of this container is displayed as a slide -->
+	    <div class="slides">
+	      <section>
+		<h2>Concurrency in Haskell with STM</h2>
+		<br/>
+		<h4>Greg Hale / <strong>Boston Haskell Meetup</strong> / 2014-05-21</h4>
+		<br/>
+		<div>
+		  Code: <a href="http://github.com/imalsogreg/stm-demo">
+		    github.com/imalsogreg/stm-demo</a>
+		  <br/>
+		  Slides: <a href="http://webglog.net/stm-demo-slides.html">
+		    webglog.net/stm-demo-slides.html</a>
+		</div>
+		<div style="clear:both;"></div>
+	      </section>
+
+
+	      <section>
+		<h2>Parallel &amp; Concurrent Programming</h2>
+		<div>
+		  <div class="splitLeft">
+
+		    <img src="./stm-demo-slides/img/marlowShadow.png" style="height:500px;"/>
+
+		  </div>
+		  <div class="splitRight">
+		    <ul style="text-align:left;">
+		      <br/><br/><br/><br/>
+		      <li>By Simon Marlow<br/><small> </small></li>
+		      <li>Thorough & really well written<br/><small> </small></li>
+		      <li>Free online<br/><a href="http://chimera.labs.oreilly.com/books/1230000000929">
+			  <small>chimera.labs.oreilly.com/books/1230000000929</small>
+		      </a><br/></li>
+		      <li>Worth a buy<br/><a href="http://shop.oreilly.com/product/0636920026365.do">
+			<small>http://shop.oreilly.com/product/0636920026365.do</small></a></li>
+		    </ul>
+		  </div>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Haskell is empowering</h2>
+		<br/><br/>
+		<div class="splitLeft" style="text-align:left;padding:0px 0px 0px 50px;width:45%;">
+		  <h4 style="text-align:center;">On Haskell's learning curve</h4>
+		  <ul style="font-size:20pt">
+		    <li>Haskell: <em>Easy</em> things &rarr; <em>Hard</em><br/><small>(at first)</small></li>
+		    <li>...some <em>Hard</em> things &rarr; <em>Easy</em></li>
+		    <li>Case in point: <em>concurrency</em></li>
+		  </ul>
+		  <br/><br/><br/>
+		  <h4  style="text-align:center;">A little about me</h4>
+		  <ul style="font-size:20pt">
+		    <li>Wet-lab neuroscientist<br/></li>
+		    <li>Slinging &quot;just-good-enough-to-work&quot; Matlab code</li>
+		    <li>Wrote c++ for 2 years</li>
+		    <li>Discover <a href="http://ocaml.org">OCaml</a> through <a href="https://sites.google.com/site/steveyegge2/blog-rants">Yegge's</a> blog. Then <a href="http://www.haskell.org">Haskell</a> in 2013. Instant love</li>
+		    <li>My research: Neurons in rats learning mazes</li>
+		  </ul>
+		</div>
+		<div class="splitRight">
+		  <img src="stm-demo-slides/img/haskellPromise.png" style="background-color:rgba(255,255,255,0.8);padding:10px;border-radius:10px;"/>
+		</div>
+	      </section>
+	      	      
+
+	      <section>
+		<h2>Reconstruction (&Delta;t = 0.20)</h2>
+		<br/>
+		<p>Decoding (black) matches position (green)</p>
+		<img src="../../pics/rpos200ms.png" width=800/>
+	      </section>
+	      <section>
+		<h2>Reconstruction (&Delta;t = 0.02)</h2>
+		<br/>
+		<p>Decoding (black) matches position (green)</p>
+		<img src="../../pics/thetaSequences.png" width=800/>
+	      </section>
+	      <section>
+		<h2>Reconstruction (&Delta;t = 0.02)</h2>
+		<br/>
+		<p>Decoding (black) matches position (green)</p>
+		<img src="../../pics/anotherReplayDone.png" width=800/>
+	      </section>
+
+
+	      <section>
+		<h2>Realtime experiments</h2>
+		<br/>
+		<div style="float:left;width:40%;">
+		  <img src="stm-demo-slides/img/tMaze.png"/>
+		</div>
+		<div style="float:right;width:45;">
+		  <p><em>Given</em> realtime replay detection:</p>
+		  <ul>
+		    <li><strong>Reward</strong> rat for Left replays</li>
+		    <ol>
+		      <li class="fragment">
+			Will they learn to self-stimulate?</li>
+		      <li class="fragment">
+			Does it change Left behavior?</li>
+		      <li class="fragment">
+			Does it change place field width, asymmetry?</li>
+		    </ol>
+		    <li class="fragment">Condition the <strong>task</strong> on replay content</li>
+		    <ol>
+		      <li class="fragment">
+			Left replay in stem  &rarr; Must go Left this trial</li>
+		      <li class="fragment">
+			Learnable?</li>
+		    </ol>
+		    <li class="fragment"><strong>Disrupt</strong> exploratory theta sequences</li>
+		  </ul>
+		</div>
+	      </section>
+	      
+	      <section>
+		<h2>Steps involved in decoding</h2>
+		<br/>
+		<table>
+		  <tr>
+		    <td>0. Acquire spikes, pos</td><td>&rarr; FTP files to MATLAB after experiment</td>
+		  </tr>
+		  <tr>
+		    <td>1. Cluster-cutting</td><td>&rarr; After the fact, by human</td>
+		  </tr>
+		  <tr>
+		    <td>2. Filter by speed</td><td>&rarr; No problem</td>
+		  </tr>
+		  <tr>
+		    <td>3. Compute place fields</td><td>&rarr; Serial, takes time &prop; to #spikes</td>
+		  </tr>
+		  <tr>
+		    <td>4. Bayesian decode</td><td>&rarr; Serial</td>
+		  </tr>
+		</table>
+		<br/>
+		<br/>
+		<h2>Steps involved in realtime decoding</h2>
+		<br/>
+		<table>
+		  <tr>
+		    <td>0. Acquire spikes, pos</td><td>&rarr; Network to <span class="fragment">Haskell</span> for analysis</td>
+		  </tr>
+		  <tr>
+		    <td>1. Cluster-cutting</td><td>&rarr; Manual? Semi-automated? Clusterless?</td>
+		  </tr>
+		  <tr>
+		    <td>2. Filter by speed</td><td>&rarr; No problem</td>
+		  </tr>
+		  <tr>
+		    <td>3. Compute place fields</td><td>&rarr; <strong>Stream-friendly model - parallel over 32 tetrodes</strong></td>
+		  </tr>
+		  <tr>
+		    <td>4. Bayesian decode</td><td>&rarr; <strong>Very concurrent</strong></td>
+		  </tr>
+		</table>
+		<br/>
+	      </section>
+
+
+	      <section>
+		<h2>The essence of bugs</h2>
+		<br/>
+		<ul>
+		  <li>State</li>
+		  <ul class="fragment">
+		    <li>Keeping track of state (stale iterators)</li>
+		    <li>Hidden state (NULL pointers, global variables)</li>
+		  </ul>
+		  <li class="fragment">
+		    &quot;Do what I mean&quot; flexibility (mostly about MATLAB)</li>
+		  <ul class="fragment">
+		    <li>MATLAB's undeclared variables</li>
+		    <li>Number &harr; Bool &harr; Array &harr; Null</li>
+		    <li>Pathologically overloaded functions</li>
+		    <ul class="fragment">
+		      <li>min(xs) vs. min(xs,2) vs. min(xs,[],2)</li>
+		    </ul>
+		  </ul>
+		  <li class="fragment">Barriers to abstraction</li>
+		  <ul class="fragment">
+		    <li>MATLAB: effectively one function per file, pan-matrixism is clunky</li>
+		    <li>c: constantly manage all memory/resources by hand: leaky abstraction</li>
+		    <li>c++: OOP and templates</li>
+		  </ul>
+		  <li class="fragment">Many bugs fit into these categories</li>
+		  <li class="fragment">Only discovered by running the code to the point of the bug (if ever)</li>
+		</ul>
+	      </section>
+	      
+	      <section>
+		<h2>Concurrency: extreme real-world messiness</h2>
+		<br/>
+		<div style="float:left;width:40%">
+		  <p>Place field type (in C)</p>
+		  <pre><code class="haskell">struct PlaceField {
+  double binSpikeRates[100];
+  int    nNewSpikes;
+  Pos   *posAtNewSpike;
+}</code></pre>
+		  <br/>
+		  <p class="fragment">Two options:</p>
+		  <ul class="fragment">
+		    <li>Run as is. Threads overwrite each other half way through operations. <strong>Guaranteed</strong> data corruption and crashes</li>
+		    <li>Use locks. No more corrupted data. <strong>Guaranteed</strong> freezing.</li>
+		  </ul>
+		</div>
+		<div style="float:left;width:60%">
+		  <p>Spike input thread</p>
+		  <pre><code class="haskell">void acceptSpike(PlaceField *pf, Pos *p){
+  pf-&gt;nNewSpikes++;
+  pf-&gt;posAtNewSpike[s.nNewSpikes] = copy_pf(p);
+}</code></pre>
+		  <br/>
+		  <p>Reconstruction / Spike merger thread</p>
+		  <pre><code class="haskell">PosEst *doBayes(PlaceField *pf[], int nPf)
+{
+  PosEst *pe = createPosEstimate(pf,nPf);
+  for (int n = 0; n &lt; nPf; n++){
+    writeSpikesToField(pf[n]);
+    resetNewSpikes(pf[n]);
+  }
+}</code></pre>
+		      </div>
+	      </section>
+
+	      <section>
+		<h2>Decoding concurrency requirements</h2>
+		<br/>
+		<br/>
+		<img src="../../pics/concurrency.png" height=600/>
+		<br/><br/>
+		<h3 style="text-align:right;">(Nightmarish)</h3>
+	      </section>
+
+	      <section>
+		<h2>Monads to the rescue</h2>
+		<br/>
+		<h3>STM: a journaling concurrency monad</h3>
+		<ul style="line-height:130%;">
+		  <li>STM: Software Transactional Memory</li>
+		  <li>Only 3 things may happen in the <code class="haskell">STM</code> monad:</li>
+		  <ol style="line-height:130%;">
+		    <li>Pure function application</li>
+		    <li>Assignment to special shared variables: <strong>TVar</strong>&apos;s</li>
+		    <li><code class="haskell">&gt;&gt;=</code> to glue together independent STM actions</li>
+		  </ol>
+		</ul>
+		
+	      </section>
+
+	      <section>
+		<h2>Streaming position reconstruction in the STM monad</h2>
+
+		<br/><br/>
+		<div style="float:left;width:45%">
+		<ul>
+		  <li>STM lets threads run without locks</li>
+		  <li>Tracks TVar reads/writes in a journal</li>
+		  <li>In case of collision, unroll action, retry</li>
+		  <li><strong>Only possible because of type system: no arbitrary state changes allowed</strong></li>
+		</ul>
+		</div>
+		<div style="float:left;width:45%">
+		  <img src="../../pics/concurrencySTM.png" height=500/>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Types guide the implementation</h2>
+		<br/><br/>
+		<div style="float:left;width:50%">
+		<pre class="fragment" data-fragment-index=1><code class="haskell">-- Full 3D position data.  
+data Position = Position 
+  { _posTime        :: !ExperimentTime
+  , _location       :: !Location
+  , _angle          :: !Angle
+  , _heading        :: !Double
+  , _speed          :: !Double
+  , _posConfidence  :: !PosConf
+  , _headingHistory :: [Double]
+  , _speedHistory   :: [Double]
+
+  , _lastGoodTime   :: !ExperimentTime
+  , _lastGoodLoc    :: !Location
+  }
+  deriving (Eq, Ord, Show, Generic)</code></pre>
+		<br/>
+		<pre class="fragment" data-fragment-index=4><code class="haskell">-- Position/segment relationship
+data TrackPos = TrackPos 
+  { _trackBin :: !TrackBin
+  , _trackDir :: !TrackDirection
+  , _trackEcc :: !TrackEccentricity
+  } deriving (Eq, Ord, Show)</code></pre>
+
+		</div>
+		<div style="float:right;width:50%">
+		  <pre class="fragment" data-fragment-index=2><code class="haskell">-- Directional &amp; spatial track segment
+data TrackBin = TrackBin 
+  { _binNam :: !String
+  , _binLoc :: !Location
+  , _binDir :: !Double -- radians
+  , _binA   :: !Double --
+  , _binZ   :: !Double
+  , _binWid :: !Double
+  } 
+  deriving (Eq, Ord, Show)</code></pre>
+		  <br/>
+		  <pre class="fragment" data-fragment-index=3><code class="haskell">-- Track is a list of segments
+data Track = Track 
+  { _trackBins  :: [TrackBin]} 
+  deriving (Eq, Show)</code></pre>
+		  <br/>
+		  <pre class="fragment" data-fragment-index=5><code class="haskell">-- Field: Any function over TrackPos's
+type Field a = Map.Map TrackPos a</code></pre>
+		</div>
+	      </section>
+	      
+	      <section>
+		<h2>Decoder&apos;s stateful operation</h2>
+		<br/><br/>
+		<pre><code>main = ds &lt;- newTVar :: IO DecoderState
+  mapM_ (\f -&gt; async (parseToStream f &gt;-&gt; updateWithSpike ds)) spikeFiles &gt;&gt;=
+  async (parseToStream posFile &gt;-&gt; updateWithPos ds) &gt;&gt;=
+  async (stepDecoderLoop ds) &gt;&gt;=
+  async (stepVisualization ds)</code></pre>
+		<br/><br/>
+		<p>Essence of the stateful part of the decoder</p>
+		<p>Every other function in the system is a function it the math sense: stateless relationship between argument and return value</p>
+	      </section>
+
+	      <section>
+		<h2>The path to doing actual experiments</h2>
+		<br/><br/>
+		<h3>ArtE backend can record spikes, ArteDecoder can decode at speed - a couple more hurdles in the way:</h3>
+		<ol>
+		  <li>Realtime position tracking</li>
+		  <li>Connect ArtE spike detection (or OpenEphys, or Pugl) to decoder</li>
+		  <li>Labal replay event boundaries in realtime</li>
+		  <li>Realtime computer-assisted clustercutting, or</li>
+		  <li>Realtime clusterless</li>
+		</ol>
+		<br/><br/>
+		<h3>Thanks for listening! Feedback?</h3>
+	    </div>
+	    
+	  </div>
+	  
+	  <script src="lib/js/head.min.js"></script>
+	  <script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+
+			        width:  1200,
+			        height: 900,
+
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				parallaxBackgroundImage: './stm-demo-slides/img/CBMM_Logo_Big_Light.png',
+				parallaxBackgroundSize: '2100px 1200px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
