@@ -96,141 +96,97 @@ p		<![endif]-->
 		  <h4  style="text-align:center;">A little about me</h4>
 		  <ul style="font-size:20pt">
 		    <li>Wet-lab neuroscientist<br/></li>
-		    <li>Slinging &quot;just-good-enough-to-work&quot; Matlab code</li>
-		    <li>Wrote c++ for 2 years</li>
-		    <li>Discover <a href="http://ocaml.org">OCaml</a> through <a href="https://sites.google.com/site/steveyegge2/blog-rants">Yegge's</a> blog. Then <a href="http://www.haskell.org">Haskell</a> in 2013. Instant love</li>
-		    <li>My research: Neurons in rats learning mazes</li>
+		    <li>Mixing liquids in beakers and writing &quot;just-good-enough-to-work&quot; Matlab code</li>
+		    <li>Writing c++ for 2 years</li>
+		    <li>Discovered <a href="http://ocaml.org">OCaml</a> through <a href="https://sites.google.com/site/steveyegge2/blog-rants">Yegge's</a> blog. Then <a href="http://www.haskell.org">Haskell</a> in 2013. Instant love</li>
+		    <li>My research: Analyze neurons in rats learning about mazes</li>
 		  </ul>
 		</div>
 		<div class="splitRight">
-		  <img src="stm-demo-slides/img/haskellPromise.png" style="background-color:rgba(255,255,255,0.8);padding:10px;border-radius:10px;"/>
+		  <!--
+		  <img src="stm-demo-slides/img/haskellPromise.png" style="background-color:rbga(255,255,255,0.8);padding:10px;border-radius:10px;"/>
+		  -->
+		  <img src="stm-demo-slides/img/haskellPromise.png" style="background-color:rgba(255,255,255,0.75);padding:10px;border-radius:10px;box-shadow:-5px 3px 5px rgba(0,0,0,0.3);"/>
 		</div>
 	      </section>
 	      	      
-
 	      <section>
-		<h2>Reconstruction (&Delta;t = 0.20)</h2>
-		<br/>
-		<p>Decoding (black) matches position (green)</p>
-		<img src="../../pics/rpos200ms.png" width=800/>
-	      </section>
-	      <section>
-		<h2>Reconstruction (&Delta;t = 0.02)</h2>
-		<br/>
-		<p>Decoding (black) matches position (green)</p>
-		<img src="../../pics/thetaSequences.png" width=800/>
-	      </section>
-	      <section>
-		<h2>Reconstruction (&Delta;t = 0.02)</h2>
-		<br/>
-		<p>Decoding (black) matches position (green)</p>
-		<img src="../../pics/anotherReplayDone.png" width=800/>
+		<h2>Neuron recording with tetrodes</h2>
+		<div class="splitLeft"> <img src="stm-demo-slides/img/tetrode.png" style="width:80%"/></div>
+		<div class="splitRight"><img src="stm-demo-slides/img/clusters.png" style="width:80%"/></div>
+		<ul>
+		  <li><u><strong>Step 1</strong></u> Cocktail party problem in the brain, who&apos;s saying what?</li>
+		  <li>Pair of wires, each hearing the same &quot;spikes&quot; from nearby neurons</li>
+		  <li>Neuron A closer to wire 1 &rarr; A&apos;s spikes bigger on channel 1. Vice versa</li>
+		  <li>Several neurons: spikes form clusters in Amplitude 2 vs. Amplitude 1 plot</li>
+		  <li>With 32 wire pairs, record about 50 neurons</li>
+		</ul>
 	      </section>
 
-
 	      <section>
-		<h2>Realtime experiments</h2>
+		<h2>Interpreting the spikes: Place fields</h2>
+		<div class="splitLeft"> <img src="stm-demo-slides/img/fieldA.png"/><br/>
+		  <h3 style="text-align:center;">Neuron A</h3></div>
+		<div class="splitRight"><img src="stm-demo-slides/img/fieldB.png"/><br/>
+		  <h3 style="text-align:center;">Neuron B</h3></div>
+		<ul>
 		<br/>
-		<div style="float:left;width:40%;">
-		  <img src="stm-demo-slides/img/tMaze.png"/>
-		</div>
-		<div style="float:right;width:45;">
-		  <p><em>Given</em> realtime replay detection:</p>
-		  <ul>
-		    <li><strong>Reward</strong> rat for Left replays</li>
-		    <ol>
-		      <li class="fragment">
-			Will they learn to self-stimulate?</li>
-		      <li class="fragment">
-			Does it change Left behavior?</li>
-		      <li class="fragment">
-			Does it change place field width, asymmetry?</li>
-		    </ol>
-		    <li class="fragment">Condition the <strong>task</strong> on replay content</li>
-		    <ol>
-		      <li class="fragment">
-			Left replay in stem  &rarr; Must go Left this trial</li>
-		      <li class="fragment">
-			Learnable?</li>
-		    </ol>
-		    <li class="fragment"><strong>Disrupt</strong> exploratory theta sequences</li>
-		  </ul>
-		</div>
+		  <li>Count spikes from a cell while rat visits each track position</li>
+		  <li>Divide by time speant in each position: <em>Place field</em></li>
+		  <li>Each place cell has a different place field</li>
+		</ul>
 	      </section>
 	      
 	      <section>
-		<h2>Steps involved in decoding</h2>
-		<br/>
-		<table>
-		  <tr>
-		    <td>0. Acquire spikes, pos</td><td>&rarr; FTP files to MATLAB after experiment</td>
-		  </tr>
-		  <tr>
-		    <td>1. Cluster-cutting</td><td>&rarr; After the fact, by human</td>
-		  </tr>
-		  <tr>
-		    <td>2. Filter by speed</td><td>&rarr; No problem</td>
-		  </tr>
-		  <tr>
-		    <td>3. Compute place fields</td><td>&rarr; Serial, takes time &prop; to #spikes</td>
-		  </tr>
-		  <tr>
-		    <td>4. Bayesian decode</td><td>&rarr; Serial</td>
-		  </tr>
-		</table>
-		<br/>
-		<br/>
-		<h2>Steps involved in realtime decoding</h2>
-		<br/>
-		<table>
-		  <tr>
-		    <td>0. Acquire spikes, pos</td><td>&rarr; Network to <span class="fragment">Haskell</span> for analysis</td>
-		  </tr>
-		  <tr>
-		    <td>1. Cluster-cutting</td><td>&rarr; Manual? Semi-automated? Clusterless?</td>
-		  </tr>
-		  <tr>
-		    <td>2. Filter by speed</td><td>&rarr; No problem</td>
-		  </tr>
-		  <tr>
-		    <td>3. Compute place fields</td><td>&rarr; <strong>Stream-friendly model - parallel over 32 tetrodes</strong></td>
-		  </tr>
-		  <tr>
-		    <td>4. Bayesian decode</td><td>&rarr; <strong>Very concurrent</strong></td>
-		  </tr>
-		</table>
-		<br/>
-	      </section>
-
-
-	      <section>
-		<h2>The essence of bugs</h2>
+		<h2>Position decoding</h2>
 		<br/>
 		<ul>
-		  <li>State</li>
-		  <ul class="fragment">
-		    <li>Keeping track of state (stale iterators)</li>
-		    <li>Hidden state (NULL pointers, global variables)</li>
-		  </ul>
-		  <li class="fragment">
-		    &quot;Do what I mean&quot; flexibility (mostly about MATLAB)</li>
-		  <ul class="fragment">
-		    <li>MATLAB's undeclared variables</li>
-		    <li>Number &harr; Bool &harr; Array &harr; Null</li>
-		    <li>Pathologically overloaded functions</li>
-		    <ul class="fragment">
-		      <li>min(xs) vs. min(xs,2) vs. min(xs,[],2)</li>
-		    </ul>
-		  </ul>
-		  <li class="fragment">Barriers to abstraction</li>
-		  <ul class="fragment">
-		    <li>MATLAB: effectively one function per file, pan-matrixism is clunky</li>
-		    <li>c: constantly manage all memory/resources by hand: leaky abstraction</li>
-		    <li>c++: OOP and templates</li>
-		  </ul>
-		  <li class="fragment">Many bugs fit into these categories</li>
-		  <li class="fragment">Only discovered by running the code to the point of the bug (if ever)</li>
+		  <li>Taking all spikes from all neurons in a 20ms window ...</li>
+		  <li>and all the place fields</li>
+		  <li>Decode instantaneous position from the spiking</li>
+		  <li>Running (left) - decoding matches rat's position - <strong>expected</strong></li>
+		  <li>Eating (right) - hippocampus ocassionally takes a lap - <strong><em>weird!</em></strong></li>
 		</ul>
+		<br/>
+		<img src="stm-demo-slides/img/reconstruction.png" style="width:80%;"/>
+	      </section>
+
+	      <section>
+		<h2>Goal: realtime decoding</h2>
+		<br/>
+		<div style="float:left;width:30%;">
+		  <img src="stm-demo-slides/img/tMaze.png"/>
+		</div>
+		<div style="float:left;width:55;">
+		  <p>How we would study this, if we could detect it online</p>
+		  <ul style="text-align:left;">
+		    <li>Reward rat for emitting left-going replay<br/>
+		      <small>Can replay be trained?</small></li>
+		    <li>Interrupt right-going replay<br/>
+		    <small>Does place cell spiking or memory depend on intact replay?</small></li>
+		    <li>Edit replay<br/>
+		      <small>Is replay plastic? Can we tweak it by adding spikes?</small></li>
+		  </ul>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Decoding concurrency requirements</h2>
+		<br/>
+		<div class="splitLeft">
+		  <img src="stm-demo-slides/img/decoderConcurrency.png" height=600/>
+		</div>
+		<div class="splitRight">
+		  <br/>
+		  <ul>
+		    <li>Some threads want to lock the whole structure (UI, decoding)</li>
+		    <li>Some threads want more fine-grained locks (updating one place field)</li>
+		    <li>&quot;Couldn&apos;t you just use mutexes and &lt;&lt;<em>specific technique</em>&gt;&gt;?&quot;</li>
+		    <li>Becomes very hard to extend, prone to deadlock</li>
+		  </ul>
+		  <br/><br/>
+		  <h2 style="text-align:center;">Enter STM</h2>
+		</div>
 	      </section>
 	      
 	      <section>
@@ -269,14 +225,6 @@ p		<![endif]-->
 		      </div>
 	      </section>
 
-	      <section>
-		<h2>Decoding concurrency requirements</h2>
-		<br/>
-		<br/>
-		<img src="../../pics/concurrency.png" height=600/>
-		<br/><br/>
-		<h3 style="text-align:right;">(Nightmarish)</h3>
-	      </section>
 
 	      <section>
 		<h2>Monads to the rescue</h2>
