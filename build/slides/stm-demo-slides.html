@@ -181,14 +181,47 @@ p		<![endif]-->
 		  <ul>
 		    <li>Some threads want to lock the whole structure (UI, decoding)</li>
 		    <li>Some threads want more fine-grained locks (updating one place field)</li>
-		    <li>&quot;Couldn&apos;t you just use mutexes and &lt;&lt;<em>specific technique</em>&gt;&gt;?&quot;</li>
-		    <li>Becomes very hard to extend, prone to deadlock</li>
+		    <li>Mutexes here become hard to extend, prone to deadlock</li>
+		    <br/>
+		    <li>STM: No locks, optimistically let threads update state simultaneously</li>
+		    <li>Runtime detects when changes collide</li>
+		    <li>In case of collission, roll back one thread and retry</li>
+		    <br/>
+		    <li>Programmer never has to think about locks!</li>
+		    <li>But, is this too slow?</li>
 		  </ul>
-		  <br/><br/>
-		  <h2 style="text-align:center;">Enter STM</h2>
 		</div>
 	      </section>
-	      
+
+	      <section>
+		<h2>Realtime&ast; place field tracking</h2>
+		<video controls>
+		  <source src="stm-demo-slides/img/field.mp4"/>
+		</video>
+		<ul style="font-size:18pt;">
+		  <li>Spikes &amp; position read from disk</li>
+		  <li>Still need to write realtime video tracker</li>
+		  <li>Realtime parts: spike sorting, place field tracking, position decoding</li>
+		  <li>Lots more work to do before actual experiments are possible</li>
+		</ul>
+	      </section>
+
+	      <section>
+		<h2>Realtime&ast; position decoding</h2>
+		<video controls>
+		  <source src="stm-demo-slides/img/decoding.mp4"/>
+		</video>
+		<ul style="font-size:18pt;">
+		  <li>Spikes &amp; position read from disk</li>
+		  <li>Still need to write realtime video tracker</li>
+		  <li>Realtime parts: spike sorting, place field tracking, position decoding</li>
+		  <li>Lots more work to do before actual experiments are possible</li>
+		</ul>
+	      </section>
+
+	      <section>
+	      </section>
+
 	      <section>
 		<h2>Concurrency: extreme real-world messiness</h2>
 		<br/>
