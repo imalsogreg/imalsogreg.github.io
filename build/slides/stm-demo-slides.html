@@ -220,7 +220,42 @@ p		<![endif]-->
 	      </section>
 
 	      <section>
+		<h2>Nice Properties of STM</h2>
+
+		<div class="splitLeft">
+		  <br/><br/><br/><br/>
+		  <ul>
+		  <li>Guarenteed Contistent data</li>
+		  <li>Pretty fast</li>
+		  <li><em>Flexible granularity level</em></li>
+		  <li><em>No deadlocks</em></li>
+		  <li>Concurrency becomes <u>
+		      <a href="http://research.microsoft.com/pubs/67418/2005-ppopp-composable.pdf">
+		      <em>composable</em></a></u></li>
+		  </ul>
+		</div>
+		<div class="splitRight">
+		  <a href="http://research.microsoft.com/pubs/67418/2005-ppopp-composable.pdf">
+		    <img src="stm-demo-slides/img/Paper.png"/>
+		  </a>
+		</div>
 	      </section>
+
+	      <section>
+		<h2>Glueing things together, with monads<h2>
+		    <br/>
+		    <h4>Monad: The programmable <span><code>;</code></span>&ast;</h4>
+		    <div class="splitLeft" style="width:60%;">
+		    <pre><code class="c">
+a = 0;      // Environment: {i:10, a:0}
+b = a + 1;  // Environment: {i:10, a:1, b:1}
+return (b + a);
+		    </code></pre></div>
+		    <div class="splitRight" style="width:40%;">
+		      <p><span><code>;</code></span> says, run statement on the left. Make its results available in the environment of everything on the right.</p>
+		    </div>
+	      </section>
+
 
 	      <section>
 		<h2>Concurrency: extreme real-world messiness</h2>
