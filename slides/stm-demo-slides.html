@@ -158,19 +158,20 @@ p		<![endif]-->
 		  <img src="stm-demo-slides/img/tMaze.png"/>
 		</div>
 		<div style="float:left;width:55;">
-		  <p>How we would study this, if we could detect it online</p>
+		  <p>How we would study this, if we could detect it online</p><br/>
 		  <ul style="text-align:left;">
 		    <li>Reward rat for emitting left-going replay<br/>
-		      <small>Can replay be trained?</small></li>
+		      <em>Can replay be trained?</em></li><br/>
 		    <li>Interrupt right-going replay<br/>
-		    <small>Does place cell spiking or memory depend on intact replay?</small></li>
+		    <em>Does place cell spiking or memory depend on intact replay?</em></li><br/>
 		    <li>Edit replay<br/>
-		      <small>Is replay plastic? Can we tweak it by adding spikes?</small></li>
+		      <em>Is replay plastic? Can we tweak it by adding spikes?</em></li>
 		  </ul>
 		</div>
 	      </section>
 
 	      <section>
+		<section>
 		<h2>Decoding concurrency requirements</h2>
 		<br/>
 		<div class="splitLeft">
@@ -191,11 +192,33 @@ p		<![endif]-->
 		    <li>But, is this too slow?</li>
 		  </ul>
 		</div>
+		</section>
 
 		<section>
 		  <h3>Aside: Why concurrency is hard</h3>
 		  <br/>
-		  
+		  <pre><code class="c">void transfer_money(accountA,accountB,amount){
+ take_lock(accountA);
+ take_lock(accountB);
+ accountA = accountA - amount;
+ accountB = accountB - amount;
+ release_lock(accountB);
+ release_lock(accountA);
+}</code></pre>
+		  <p style="text-align:left;">We must lock the two variables we&apos;re updating, to prevent other threads from possibly seeing intermediate state</p><br/>
+		  <p style="text-align:left;">But what if these happen simultaneously?</p><br/>
+		  <div class="splitLeft">
+		    <h4>Cambridge Bank</h4>
+		    <pre><code>transfer_money(amy,bob,50);</code></pre>
+		  </div>
+		  <div class="splitRight">
+		    <h4>Bank of Cambridge</h4>
+		    <pre><code>transfer_money(bob,amy,10);</code></pre>
+		  </div>
+		  <br style="clear:both;"/><br/>
+		  <h3>Deadlock!</h3>
+		  <br/>
+		  <p style="text-align:right;">Example taken from <a href="http://research.microsoft.com/en-us/um/.../beautiful.ps">Beautiful Concurrency</a>
 		</section>
 
 	      </section>
@@ -351,6 +374,61 @@ atomically stmA = ?
 		  <li>Type system only allows STM actions and pure computations</li>
 		  <li>Also solved by types - no way to escape STM except through the log-checker</li>
 		</ol>
+	      </section>
+
+	      <section>
+		<h2>The STM API</h2>
+		<br/>
+		<p style="text-align:left;">All monadic - once you&apos;re comfortable with monads, you&apos;re comfortable with most of STM, plus a few simple helper types and functions to learn about:</p><br/>
+		<ul>
+		  <li><a href="http://hackage.haskell.org/package/stm/docs/Control-Concurrent-STM-TVar.html">TVar a</a> 
+		    &rarr; Like IORef, but for values to share between threads</li>
+		  <li><a href="http://hackage.haskell.org/package/stm/docs/Control-Concurrent-STM-TChan.html">TChan a</a>
+		    &rarr; A FIFO with independent reading and writing ends</li>
+		  <li>For later: 
+		    <a href="http://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html">retry</a>, 
+		    <a href="http://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html">orElse</a>, 
+		    <a href="http://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html">catchSTM</a></li>
+		</ul>
+		<br/><br/>
+		<div class="splitLeft fragment" style="text-align:left;width:40%;">
+		  <p>Example - from my <a href="http://github.com/ImAlsoGreg/stm-demo">github demo</a>: Extend TChan to track length and extrema</p>
+		  <p>Separate TVars &rarr; independent access</p>
+		</div>
+		<div class="splitRight fragment" style="width:60%;">
+		  <pre><code class="haskell">data ExtraChan a = ExtraChan { 
+          tchan   :: TChan a
+        , minEver :: TVar a
+        , maxEver :: TVar a
+        , lLength :: TVar Int
+        }</code></pre></div>
+		<br style="clear:both;"/><br/>
+		<div class="splitLeft fragment" style="text-align:left;width:40%;">
+		  <p>To read a value from this type</p>
+		  <p>To retrieve the length</p>
+		  <p>Don&apos;t wrap these in atomically yet - stay composable</p>
+		</div>
+		<div class="splitRight fragment" style="width:60%;">
+		  <pre><code class="haskell">readExtraChan :: ExtraChan a -> STM a
+readExtraChan t = do
+  a <- readTChan (tchan t)
+  modifyTVar (lLength t) pred
+  return a
+
+extraChanLength :: ExtraChan a -> STM Int
+extraChanLength = readTVar . lLength
+</code></pre></div>
+	      </section>
+
+	      <section>
+		<h2>Exercising our STM channel</h2>
+		<br/>
+		<p style="text-align:left"><a href="https://github.com/ImAlsoGreg/stm-demo/blob/master/demo.hs">demo.hs</a>:
+		<pre><code class="haskell">exerciseWriter :: ExtraChan Int -> ThreadName -> Int -> IO ()
+exerciseWriter c tId n = replicateM_ n $ do
+  v <- randomRIO (-1e6,1e6)
+  jitteraction (atomically $ writeExtraChan t v)</code></pre>
+       <p style="text-align:left;">At the usage site, wrap in atomically to mix in with other IO actions.</p>
 	      </section>
 
 	      <section>
