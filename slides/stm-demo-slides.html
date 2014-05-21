@@ -191,6 +191,13 @@ p		<![endif]-->
 		    <li>But, is this too slow?</li>
 		  </ul>
 		</div>
+
+		<section>
+		  <h3>Aside: Why concurrency is hard</h3>
+		  <br/>
+		  
+		</section>
+
 	      </section>
 
 	      <section>
@@ -220,6 +227,130 @@ p		<![endif]-->
 	      </section>
 
 	      <section>
+		<h2>Nice Properties of STM</h2>
+
+		<div class="splitLeft">
+		  <br/><br/><br/><br/>
+		  <ul>
+		  <li>Guarenteed Contistent data</li>
+		  <li>Pretty fast</li>
+		  <li><em>Flexible granularity level</em></li>
+		  <li><em>No deadlocks</em></li>
+		  <li>Concurrency becomes <u>
+		      <a href="http://research.microsoft.com/pubs/67418/2005-ppopp-composable.pdf">
+		      <em>composable</em></a></u></li>
+		  </ul>
+		</div>
+		<div class="splitRight">
+		  <a href="http://research.microsoft.com/pubs/67418/2005-ppopp-composable.pdf">
+		    <img src="stm-demo-slides/img/Paper.png"/>
+		  </a>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Gluing things together, with monads</h2>
+		    <h4>Monad: The programmable <span><code>;</code></span>&ast;</h4>
+		    <br/>
+		    <div class="splitLeft" style="width:60%;">
+		    <pre><code class="c">int getCode(){
+ a = getChar(); // Env: {a:'S'}
+ b = getChar(); // Env: {a:'S', b:'T'}
+ return (f(a) + g(b));
+}</code></pre></div>
+		    <div class="splitRight" style="width:40%;">
+		      <p style="text-align:left;">In C/Java/etc., semicolon says run statement on the left. Make its results available in the environment of the rest of the block.</p>
+		    </div>
+		    <br/>
+		    <div class="splitLeft" style="width:60%;">
+		      <pre><code class="haskell">getCode :: IO ()
+getCode = 
+  getChar &gt;&gt;= $ \a -&gt;
+  getChar &gt;&gt;= $ \b -&gt;
+  return (f a + g b)</code></pre>
+		    </div>
+		    <div class="splitRight" style="width:40%;">
+		      <p style="text-align:left;">In Haskell, <span><code class="haskell">&gt;&gt;=</code></span> (&apos;bind&apos;) has a similar meaning, for one particular Monad: IO. getChar forces the monad here to be the IO monad.</p>
+		    </div>
+		    <div class="splitLeft" style="width:60%;">
+		      <pre><code class="haskell">getCode :: IO Int
+getCode = do
+  a &lt;- getChar
+  b &lt;- getChar
+  return (f a + g b)</code></pre>
+		    </div>
+		    <div class="splitRight" style="width:40%;">
+		      <p style="text-align:left;">The exact same code, in &apos;do notation&apos; , looks very familiar. Implicit bind between each line composes three commands into a single command.</p>
+		    </div>
+		    <br style="clear:both;"/><br/><br/>
+		    <p style="clear:both;">Type of bind: Glue two commands into one, sharing result data</p>
+		    <div>
+		      <pre><code class="haskell"> (&gt;&gt;=) :: IO a -&gt; (a -&gt; IO b) -&gt; IO b</code></pre>
+		    </div>
+	      </section>
+
+	      <section>
+		<h2>Gluing things together, with monads</h2>
+		<h4>Monad: The <u>programmable</u> <span><code>;</code></span>&ast;</h4>
+		<br/>
+		<p>The program for <span><code>;</code></span> is determined by the monad. An example in the Maybe monad:</p>
+		<pre><code>(&gt;&gt;=) :: Maybe a -&gt; (a -&gt; Maybe b) -&gt; Maybe b</code></pre>
+		<br/>
+		<div>
+		  <p style="text-align:left;">Maybe monad: bind connects two possibly-failing computations. Inside the block, we pretend all computations succeed. The program for bind handles the failure possibility automatically.</p>
+		  <pre><code class="haskell fragment">planEvening :: Name -> FoodTable -> MovieTable -> GameTable -> Maybe Plan
+planEvening name fTbl mTbl gTbl = do
+  food  <- lookup name fTbl     -- Lookups that may fail,
+  movie <- lookup name mTbl     -- if name isn't in a table
+  game  <- lookup name gTbl     -- 
+  return $ Plan food movie game</code></pre>
+
+<pre><code class="haskell fragment">response :: Name -> FoodTable -> MovieTable -> GameTable -> String
+response n f m g = case planEvening n f m g of
+  Just plan -> "Great! You're going to" ++ describePlan plan
+  Nothing   -> "Couldn't find your name in a table. Play it by ear."</code></pre>
+	   </div>
+		<div>
+		  <p style="text-align:left;" class="fragment">&apos;Escape&apos; the Maybe monad by pattern matting. There&apos;s no way to escape the IO monad - IO constructor isn&apos;t available for pattern matching. <em>That&apos;s how pure functions are guaranteed to stay IO-free.</em></p>
+		</div> <br style="clear:both;"/>
+		<p>
+	      </section>
+
+	      <section>
+		<h2>Gluing concurrency together with monads</h2>
+		<br/>
+		<h3>STM design goals</h3>
+		<ol>
+		  <li>Combine primative concurrent computations into composite ones (Monad territory)</li>
+		  <li>Track access to shared data, detect collisions that invalidate it</li>
+		  <li>Forbid IO (for rollbacks, you can&apos;t undo IO)</li>
+		  <li>Ensure data can never be observed in an inconsistent state</li>
+		</ol>
+		<br/><br/>
+		<div class="splitLeft">
+		  <h3>Make an STM monad</h3>
+		  <pre><code class="haskell">instance Monad STM where
+ma (&gt;&gt=) f = ?
+{- Combine logs of ma and (f a)
+   In a new composite STM action -}</code></pre>
+		</div>
+		<div class="splitRight">
+		  <h3>and a Commit function</h3>
+		  <pre><code class="haskell">atomically :: STM a -> IO a
+atomically stmA = ?
+{- Read the references & do 
+   computations in order. Check 
+   read/write logs. If logs are 
+   consistent, actually commit 
+   the changes. -}</code></pre>
+		</div>
+		<br style="clear:both;"/>
+		<ol>
+		  <li>Provided by Monad instance</li>
+		  <li><strong>atomically</strong> manages this</li>
+		  <li>Type system only allows STM actions and pure computations</li>
+		  <li>Also solved by types - no way to escape STM except through the log-checker</li>
+		</ol>
 	      </section>
 
 	      <section>
