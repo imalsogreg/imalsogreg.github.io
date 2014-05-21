@@ -201,7 +201,7 @@ p		<![endif]-->
  take_lock(accountA);
  take_lock(accountB);
  accountA = accountA - amount;
- accountB = accountB - amount;
+ accountB = accountB + amount;
  release_lock(accountB);
  release_lock(accountA);
 }</code></pre>
