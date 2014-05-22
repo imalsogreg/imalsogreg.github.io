@@ -434,23 +434,23 @@ extraChanLength = readTVar . lLength
 		<br/>
 		<p style="text-align:left"><a href="https://github.com/ImAlsoGreg/stm-demo/blob/master/demo.hs">demo.hs</a>:
 		<pre><code class="haskell">exerciseWriter :: ExtraChan Int -> ThreadName -> Int -> IO ()
-exerciseWriter c tId n = replicateM_ n $ do
+exerciseWriter eChan tId n = replicateM_ n $ do
   v <- randomRIO (-1e6,1e6)
-  jitteraction (atomically $ writeExtraChan t v)</code></pre>
+  jitteraction (atomically $ writeExtraChan eChan v)</code></pre>
        <p style="text-align:left;">At the usage site, wrap in atomically to mix in with other IO actions.</p>
 		<br/>
 		<pre><code class="haskell">exercise :: ExtraChan Int -&gt; Int -&gt; Int -&gt; IO ()
-exercise c nWrite nRead = do
+exercise eChan nWrite nRead = do
   ws &lt;- forM (map show [1..nRead] $ \name -&gt;
-    async $ exerciseReader c name 100
+    async $ exerciseReader eChan name 100
   rs &lt;- forM (map show [1..nRead] $ \name -&gt;
-    async $ exerciseWriter c name 100
+    async $ exerciseWriter eChan name 100
   mapM_ wait (rs ++ ws)</code></pre>
 		<p style="text-align:left;"><a href="http://hackage.haskell.org/package/async/docs/Control-Concurrent-Async.html">async</a> starts a thread. We will have nWrite + nRead threads running simultaneously.</p><br/>
 		<pre><code class="haskell">main = do
-  t &lt;- atomically $ newExtraChan  -- Atomically create channel
-  exercise t 2 2                  -- Run threads over it
-  putStrLn =&lt;&lt; chanInfo c         -- Check its state after</code></pre>
+  eChan &lt;- atomically $ newExtraChan  -- Atomically create channel
+  exercise eChan 2 2                  -- Run threads over it
+  putStrLn =&lt;&lt; chanInfo eChan         -- Check its state after</code></pre>
 	      </section>
 
 	      <section>
