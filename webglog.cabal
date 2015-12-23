@@ -19,15 +19,15 @@ executable webglog
   main-is:             site.hs
   -- other-modules:       HakyllBibTex
   -- other-extensions:    
-  build-depends:       base >=4.6 && <4.7,
-                       optparse-applicative >=0.7 && <0.8,
-                       text >=1.1 && <1.2,
+  build-depends:       base >=4.6,
+                       optparse-applicative >=0.7 && < 0.13,
+                       text >=1.1,
                        containers,
-                       safe >=0.3 && <0.4,
+                       safe >=0.3 && < 0.4,
                        parsec,
-                       hakyll >=4.5 && <4.6,
+                       hakyll >=4.5,
                        binary,
-                       temporary == 1.1.* 
+                       temporary >= 1.1
                        --temporary 1.2.0.2 build fails...
 --                       pandoc-types,
 --                       pandoc
