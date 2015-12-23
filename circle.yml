@@ -18,11 +18,11 @@ test:
   override:
     - cabal build
 
-post:
-  - git submodule init
-  - git submodule update
-  - cd _site/ && git checkout master
-  - cabal run build
+  post:
+    - git submodule init
+    - git submodule update
+    - cd _site/ && git checkout master
+    - cabal run build
 
 deployment:
 
