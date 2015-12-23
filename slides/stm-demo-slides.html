@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Concurrency in Haskell with STM</title>
+
+		<meta name="description" content="Or: Lock-free Algorithms for Birdwatchers">
+		<meta name="author" content="Greg Hale">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/night.css" id="theme">
+		<link rel="stylesheet" href="css/style.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = '/css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+p		<![endif]-->
+	</head>
+
+	<body>
+
+	  <div class="reveal">
+	    
+	    <!-- Any section element inside of this container is displayed as a slide -->
+	    <div class="slides">
+	      <section>
+		<h2>Concurrency in Haskell with STM</h2>
+		<br/>
+		<h4>Greg Hale / <strong>Boston Haskell Meetup</strong> / 2014-05-21</h4>
+		<br/>
+		<div>
+		  Code: <a href="http://github.com/imalsogreg/stm-demo">
+		    github.com/imalsogreg/stm-demo</a>
+		  <br/>
+		  Slides: <a href="http://webglog.net/stm-demo-slides.html">
+		    webglog.net/stm-demo-slides.html</a>
+		</div>
+		<div style="clear:both;"></div>
+	      </section>
+
+
+	      <section>
+		<h2>Parallel &amp; Concurrent Programming</h2>
+		<div>
+		  <div class="splitLeft">
+
+		    <img src="./stm-demo-slides/img/marlowShadow.png" style="height:500px;"/>
+
+		  </div>
+		  <div class="splitRight">
+		    <ul style="text-align:left;">
+		      <br/><br/><br/><br/>
+		      <li>By Simon Marlow<br/><small> </small></li>
+		      <li>Thorough & really well written<br/><small> </small></li>
+		      <li>Free online<br/><a href="http://chimera.labs.oreilly.com/books/1230000000929">
+			  <small>chimera.labs.oreilly.com/books/1230000000929</small>
+		      </a><br/></li>
+		      <li>Worth a buy<br/><a href="http://shop.oreilly.com/product/0636920026365.do">
+			<small>http://shop.oreilly.com/product/0636920026365.do</small></a></li>
+		    </ul>
+		  </div>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Haskell is empowering</h2>
+		<br/><br/>
+		<div class="splitLeft" style="text-align:left;padding:0px 0px 0px 50px;width:45%;">
+		  <h4 style="text-align:center;">On Haskell's learning curve</h4>
+		  <ul style="font-size:20pt">
+		    <li>Haskell: <em>Easy</em> things &rarr; <em>Hard</em><br/><small>(at first)</small></li>
+		    <li>...some <em>Hard</em> things &rarr; <em>Easy</em></li>
+		    <li>Case in point: <em>concurrency</em></li>
+		  </ul>
+		  <br/><br/><br/>
+		  <h4  style="text-align:center;">A little about me</h4>
+		  <ul style="font-size:20pt">
+		    <li>Wet-lab neuroscientist<br/></li>
+		    <li>Mixing liquids in beakers and writing &quot;just-good-enough-to-work&quot; Matlab code</li>
+		    <li>Writing c++ for 2 years</li>
+		    <li>Discovered <a href="http://ocaml.org">OCaml</a> through <a href="https://sites.google.com/site/steveyegge2/blog-rants">Yegge's</a> blog. Then <a href="http://www.haskell.org">Haskell</a> in 2013. Instant love</li>
+		    <li>My research: Analyze neurons in rats learning about mazes</li>
+		  </ul>
+		</div>
+		<div class="splitRight">
+		  <!--
+		  <img src="stm-demo-slides/img/haskellPromise.png" style="background-color:rbga(255,255,255,0.8);padding:10px;border-radius:10px;"/>
+		  -->
+		  <img src="stm-demo-slides/img/haskellPromise.png" style="background-color:rgba(255,255,255,0.75);padding:10px;border-radius:10px;box-shadow:-5px 3px 5px rgba(0,0,0,0.3);"/>
+		</div>
+	      </section>
+	      	      
+	      <section>
+		<h2>Neuron recording with tetrodes</h2>
+		<div class="splitLeft"> <img src="stm-demo-slides/img/tetrode.png" style="width:80%"/></div>
+		<div class="splitRight"><img src="stm-demo-slides/img/clusters.png" style="width:80%"/></div>
+		<ul>
+		  <li><u><strong>Step 1</strong></u> Cocktail party problem in the brain, who&apos;s saying what?</li>
+		  <li>Pair of wires, each hearing the same &quot;spikes&quot; from nearby neurons</li>
+		  <li>Neuron A closer to wire 1 &rarr; A&apos;s spikes bigger on channel 1. Vice versa</li>
+		  <li>Several neurons: spikes form clusters in Amplitude 2 vs. Amplitude 1 plot</li>
+		  <li>With 32 wire pairs, record about 50 neurons</li>
+		</ul>
+	      </section>
+
+	      <section>
+		<h2>Interpreting the spikes: Place fields</h2>
+		<div class="splitLeft"> <img src="stm-demo-slides/img/fieldA.png"/><br/>
+		  <h3 style="text-align:center;">Neuron A</h3></div>
+		<div class="splitRight"><img src="stm-demo-slides/img/fieldB.png"/><br/>
+		  <h3 style="text-align:center;">Neuron B</h3></div>
+		<ul>
+		<br/>
+		  <li>Count spikes from a cell while rat visits each track position</li>
+		  <li>Divide by time speant in each position: <em>Place field</em></li>
+		  <li>Each place cell has a different place field</li>
+		</ul>
+	      </section>
+	      
+	      <section>
+		<h2>Position decoding</h2>
+		<br/>
+		<ul>
+		  <li>Taking all spikes from all neurons in a 20ms window ...</li>
+		  <li>and all the place fields</li>
+		  <li>Decode instantaneous position from the spiking</li>
+		  <li>Running (left) - decoding matches rat's position - <strong>expected</strong></li>
+		  <li>Eating (right) - hippocampus ocassionally takes a lap - <strong><em>weird!</em></strong></li>
+		</ul>
+		<br/>
+		<img src="stm-demo-slides/img/reconstruction.png" style="width:80%;"/>
+	      </section>
+
+	      <section>
+		<h2>Goal: realtime decoding</h2>
+		<br/>
+		<div style="float:left;width:30%;">
+		  <img src="stm-demo-slides/img/tMaze.png"/>
+		</div>
+		<div style="float:left;width:55;">
+		  <p>How we would study this, if we could detect it online</p><br/>
+		  <ul style="text-align:left;">
+		    <li>Reward rat for emitting left-going replay<br/>
+		      <em>Can replay be trained?</em></li><br/>
+		    <li>Interrupt right-going replay<br/>
+		    <em>Does place cell spiking or memory depend on intact replay?</em></li><br/>
+		    <li>Edit replay<br/>
+		      <em>Is replay plastic? Can we tweak it by adding spikes?</em></li>
+		  </ul>
+		</div>
+	      </section>
+
+	      <section>
+		<section>
+		<h2>Decoding concurrency requirements</h2>
+		<br/>
+		<div class="splitLeft">
+		  <img src="stm-demo-slides/img/decoderConcurrency.png" height=600/>
+		</div>
+		<div class="splitRight">
+		  <br/>
+		  <ul>
+		    <li>Some threads want to lock the whole structure (UI, decoding)</li>
+		    <li>Some threads want more fine-grained locks (updating one place field)</li>
+		    <li>Mutexes here become hard to extend, prone to deadlock</li>
+		    <br/>
+		    <li>STM: No locks, optimistically let threads update state simultaneously</li>
+		    <li>Runtime detects when changes collide</li>
+		    <li>In case of collission, roll back one thread and retry</li>
+		    <br/>
+		    <li>Programmer never has to think about locks!</li>
+		    <li>But, is this too slow?</li>
+		  </ul>
+		</div>
+		</section>
+
+		<section>
+		  <h3>Aside: Why concurrency is hard</h3>
+		  <br/>
+		  <pre><code class="c">void transfer_money(accountA,accountB,amount){
+ take_lock(accountA);
+ take_lock(accountB);
+ accountA = accountA - amount;
+ accountB = accountB + amount;
+ release_lock(accountB);
+ release_lock(accountA);
+}</code></pre>
+		  <p style="text-align:left;">We must lock the two variables we&apos;re updating, to prevent other threads from possibly seeing intermediate state</p><br/>
+		  <p style="text-align:left;">But what if these happen simultaneously?</p><br/>
+		  <div class="splitLeft">
+		    <h4>Cambridge Bank</h4>
+		    <pre><code>transfer_money(amy,bob,50);</code></pre>
+		  </div>
+		  <div class="splitRight">
+		    <h4>Bank of Cambridge</h4>
+		    <pre><code>transfer_money(bob,amy,10);</code></pre>
+		  </div>
+		  <br style="clear:both;"/><br/>
+		  <h3>Deadlock!</h3>
+		  <br/>
+		  <p style="text-align:right;">Example taken from <a href="http://research.microsoft.com/en-us/um/.../beautiful.ps">Beautiful Concurrency</a>
+		</section>
+
+	      </section>
+
+	      <section>
+		<h2>Realtime&ast; place field tracking</h2>
+		<video controls>
+		  <source src="stm-demo-slides/img/field.mp4"/>
+		</video>
+		<ul style="font-size:18pt;">
+		  <li>Spikes &amp; position read from disk</li>
+		  <li>Still need to write realtime video tracker</li>
+		  <li>Realtime parts: spike sorting, place field tracking, position decoding</li>
+		  <li>Lots more work to do before actual experiments are possible</li>
+		</ul>
+	      </section>
+
+	      <section>
+		<h2>Realtime&ast; position decoding</h2>
+		<video controls>
+		  <source src="stm-demo-slides/img/decoding.mp4"/>
+		</video>
+		<ul style="font-size:18pt;">
+		  <li>Spikes &amp; position read from disk</li>
+		  <li>Still need to write realtime video tracker</li>
+		  <li>Realtime parts: spike sorting, place field tracking, position decoding</li>
+		  <li>Lots more work to do before actual experiments are possible</li>
+		</ul>
+	      </section>
+
+	      <section>
+		<h2>Nice Properties of STM</h2>
+
+		<div class="splitLeft">
+		  <br/><br/><br/><br/>
+		  <ul>
+		  <li>Guarenteed Contistent data</li>
+		  <li>Pretty fast</li>
+		  <li><em>Flexible granularity level</em></li>
+		  <li><em>No deadlocks</em></li>
+		  <li>Concurrency becomes <u>
+		      <a href="http://research.microsoft.com/pubs/67418/2005-ppopp-composable.pdf">
+		      <em>composable</em></a></u></li>
+		  </ul>
+		</div>
+		<div class="splitRight">
+		  <a href="http://research.microsoft.com/pubs/67418/2005-ppopp-composable.pdf">
+		    <img src="stm-demo-slides/img/Paper.png"/>
+		  </a>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Gluing things together, with monads</h2>
+		    <h4>Monad: The programmable <span><code>;</code></span>&ast;</h4>
+		    <br/>
+		    <div class="splitLeft" style="width:60%;">
+		    <pre><code class="c">int getCode(){
+  a = getChar(); 
+  return f(a);  // Env: {a:'S'}
+}</code></pre></div>
+		    <div class="splitRight" style="width:40%;">
+		      <p style="text-align:left;">C&apos;s semicolon says run left IOable command. Make its results available in the environment of the rest of the block.</p>
+		    </div>
+		    <br/>
+		    <div class="splitLeft" style="width:60%;">
+		      <pre><code class="haskell">getCode :: IO ()
+getCode = 
+  getChar &gt;&gt;= $ \a -&gt;
+  return (f a)</code></pre>
+		    </div>
+		    <div class="splitRight" style="width:40%;">
+		      <p style="text-align:left;">In Haskell, <span><code class="haskell">&gt;&gt;=</code></span> (&apos;bind&apos;) has a similar meaning, for one particular Monad: IO. getChar forces the monad here to be the IO monad.</p>
+		    </div>
+		    <div class="splitLeft" style="width:60%;">
+		      <pre><code class="haskell">getCode :: IO Int
+getCode = do
+  a &lt;- getChar
+  return (f a)</code></pre>
+		    </div>
+		    <div class="splitRight" style="width:40%;">
+		      <p style="text-align:left;">Same code, but in  &apos;do notation&apos;. Invisible &gt;&gt;= between two IO actions combines them into one, passing result forward</p>
+		    </div>
+		    <br style="clear:both;"/><br/><br/>
+		    <p style="clear:both;">Type of bind: Glue two commands into one, sharing result data</p>
+		    <div>
+		      <pre><code class="haskell"> (&gt;&gt;=) :: IO a -&gt; (a -&gt; IO b) -&gt; IO b</code></pre>
+		    </div>
+	      </section>
+
+	      <section>
+		<h2>Gluing things together, with monads</h2>
+		<h4>Monad: The <u>programmable</u> <span><code>;</code></span>&ast;</h4>
+		<br/>
+		<p>The &quot;program&quot; for <span><code>&gt;&gt;=</code></span> is determined by the monad</p>
+		<pre><code>(&gt;&gt;=) ::     m a -&gt; (a -&gt;     m b) -&gt;     m b  --(m is any Monad)
+(&gt;&gt;=) ::    IO a -&gt; (a -&gt;    IO b) -&gt;    IO b
+(&gt;&gt;=) :: Maybe a -&gt; (a -&gt; Maybe b) -&gt; Maybe b</code></pre>
+		<br/>
+		<div>
+		  <p style="text-align:left;">Maybe monad: bind connects two possibly-failing computations. Inside the block, we pretend all computations succeed. The program for bind handles the failure possibility automatically.</p>
+		  <pre><code class="haskell fragment">planEvening :: Name -> FoodTable -> MovieTable -> GameTable -> Maybe Plan
+planEvening name fTbl mTbl gTbl = do
+  food  <- lookup name fTbl     -- Lookups that may fail,
+  movie <- lookup name mTbl     -- if name isn't in a table
+  game  <- lookup name gTbl     -- 
+  return $ Plan food movie game</code></pre>
+
+<pre><code class="haskell fragment">response :: Name -> FoodTable -> MovieTable -> GameTable -> String
+response n f m g = case planEvening n f m g of
+  Just plan -> "Great! You're going to" ++ describePlan plan
+  Nothing   -> "Couldn't find your name in a table. Play it by ear."</code></pre>
+	   </div>
+		<div>
+		  <p style="text-align:left;" class="fragment">&apos;Escape&apos; the Maybe monad by pattern matting. There&apos;s no way to escape the IO monad - IO constructor isn&apos;t available for pattern matching. <em>That&apos;s how pure functions are guaranteed to stay IO-free.</em></p>
+		</div> <br style="clear:both;"/>
+		<p>
+	      </section>
+
+	      <section>
+		<h2>Gluing concurrency together with monads</h2>
+		<br/>
+		<h3>STM design goals</h3>
+		<ol>
+		  <li>Combine primative concurrent computations into composite ones</li>
+		  <li>Track access to shared data, rollback &amp; retry on collision</li>
+		  <li>Forbid IO (for rollbacks, you can&apos;t undo IO)</li>
+		  <li>Ensure data can never be observed in an inconsistent state</li>
+		</ol>
+		<br/><br/>
+		<pre><code class="haskell">(&gt;&gt;=) :: STM a -&gt; (a -&gt; STM b) -&gt; STM b   -- Library provides an STM monad
+-- STM library doesn't give you the constructor. No escaping allowed.
+
+-- A way to turn a composite STM action into an IO command for running
+atomically :: STM a -&gt; IO a
+
+-- Some operations on shared variables, these are the only 'effects'
+-- that are allowed within STM monad
+
+-- Read a TVar (like an IORef, but for sharing between threads)
+readTVar :: TVar a -&gt; STM a
+-- Write to a TVar
+writeTVar :: TVar a -&gt; a -&gt; STM () </code></pre>
+
+<!--		<div class="splitLeft">
+		  <h3>Make an STM monad</h3>
+		  <pre><code class="haskell">instance Monad STM where
+ma (&gt;&gt=) f = ?
+{- Combine logs of ma and (f a)
+   In a new composite STM action -}</code></pre>
+		</div>
+		<div class="splitRight">
+		  <h3>and a Commit function</h3>
+		  <pre><code class="haskell">atomically :: STM a -> IO a
+atomically stmA = ?
+{- Read the references & do 
+   computations in order. Check 
+   read/write logs. If logs are 
+   consistent, actually commit 
+   the changes. -}</code></pre>
+		</div> -->
+
+
+	      </section>
+
+	      <section>
+		<h2>The STM API</h2>
+		<br/>
+		<p style="text-align:left;">All monadic - once you&apos;re comfortable with monads, you&apos;re comfortable with most of STM. A few simple helper types and functions to learn about:</p><br/>
+		<ul>
+		  <li><a href="http://hackage.haskell.org/package/stm/docs/Control-Concurrent-STM-TVar.html">TVar a</a> 
+		    &rarr; Like IORef, but for values to share between threads</li>
+		  <li><a href="http://hackage.haskell.org/package/stm/docs/Control-Concurrent-STM-TChan.html">TChan a</a>
+		    &rarr; A FIFO with independent reading and writing ends</li>
+		  <li>For later: 
+		    <a href="http://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html">retry</a>, 
+		    <a href="http://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html">orElse</a>, 
+		    <a href="http://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html">catchSTM</a></li>
+		</ul>
+		<br/><br/>
+		<div class="splitLeft fragment" style="text-align:left;width:40%;">
+		  <p>Example - from the <a href="http://github.com/ImAlsoGreg/stm-demo">github demo</a>: Extend TChan to track length and extrema</p>
+		  <p>Separate TVars &rarr; independent access</p>
+		</div>
+		<div class="splitRight fragment" style="width:60%;">
+		  <pre><code class="haskell">data ExtraChan a = ExtraChan { 
+          tchan   :: TChan a
+        , minEver :: TVar a
+        , maxEver :: TVar a
+        , lLength :: TVar Int
+        }</code></pre></div>
+		<br style="clear:both;"/><br/>
+		<div class="splitLeft fragment" style="text-align:left;width:40%;">
+		  <p>To read a value from this type</p>
+		  <p>To retrieve the length</p>
+		  <p>Don&apos;t wrap these in atomically yet - stay composable</p>
+		</div>
+		<div class="splitRight fragment" style="width:60%;">
+		  <pre><code class="haskell">readExtraChan :: ExtraChan a -&gt; STM a
+readExtraChan t = do
+  a &lt;- readTChan (tchan t)
+  modifyTVar (lLength t) pred
+  return a
+
+extraChanLength :: ExtraChan a -> STM Int
+extraChanLength = readTVar . lLength
+</code></pre></div>
+
+	      </section>
+
+	      <section>
+		<h2>Exercising our STM channel</h2>
+		<br/>
+		<p style="text-align:left"><a href="https://github.com/ImAlsoGreg/stm-demo/blob/master/demo.hs">demo.hs</a>:
+		<pre><code class="haskell">exerciseWriter :: ExtraChan Int -> ThreadName -> Int -> IO ()
+exerciseWriter eChan tId n = replicateM_ n $ do
+  v <- randomRIO (-1e6,1e6)
+  jitteraction (atomically $ writeExtraChan eChan v)</code></pre>
+       <p style="text-align:left;">At the usage site, wrap in atomically to mix in with other IO actions.</p>
+		<br/>
+		<pre><code class="haskell">exercise :: ExtraChan Int -&gt; Int -&gt; Int -&gt; IO ()
+exercise eChan nWrite nRead = do
+  ws &lt;- forM (map show [1..nRead] $ \name -&gt;
+    async $ exerciseReader eChan name 100
+  rs &lt;- forM (map show [1..nRead] $ \name -&gt;
+    async $ exerciseWriter eChan name 100
+  mapM_ wait (rs ++ ws)</code></pre>
+		<p style="text-align:left;"><a href="http://hackage.haskell.org/package/async/docs/Control-Concurrent-Async.html">async</a> starts a thread. We will have nWrite + nRead threads running simultaneously.</p><br/>
+		<pre><code class="haskell">main = do
+  eChan &lt;- atomically $ newExtraChan  -- Atomically create channel
+  exercise eChan 2 2                  -- Run threads over it
+  putStrLn =&lt;&lt; chanInfo eChan         -- Check its state after</code></pre>
+	      </section>
+
+	      <section>
+		<h2>Test results</h2>
+		<br/><pre><code class="bash">greg@devel5:~/stm-demo$ cabal sandbox init
+greg@devel5:~/stm-demo$ cabal install
+greg@devel5:~/stm-demo$ .cabal-sandbox/bin/demo t 10 10 10 +RTS -N4
+...
+Lengther 3 saw length 1
+Writer 3 wrote -441528
+Lengther 2 saw length 2
+Reader 7 read -368132
+Lengther 7 saw length 1
+Reader 8 read -441528
+Lengther 4 saw length 0
+Lengther 2 saw length 0
+Vals: [] Min: -982954 Max: 989161 Len: 0</code></pre>
+		<br/>
+		<p>30 green threads working on one ExtraChan - looks good</p>
+	      </section>
+
+	      <section>
+		<h2>Test results - MVar</h2>
+<br/><pre><code class="bash">greg@devel5:~/stm-demo$ .cabal-sandbox/bin/demo m 1 1 0 +RTS -N4
+Writer 3 wrote -110453
+Writer 2 wrote -625761
+Writer 1 wrote -153939
+Reader 2 read -110453
+Reader 1 read -625761
+Reader 3 read -153939
+Writer 2 wrote 907584
+Writer 3 wrote 663873
+Reader 2 read 907584
+Writer 1 wrote -801365
+Reader 3 read -801365
+Reader 1 read 663873
+demo: thread blocked indefinitely in an STM transaction
+</code></pre><br/>
+		<p><a href="https://github.com/ImAlsoGreg/stm-demo/blob/master/Data/MExtraChan.hs">Lock-based</a> attempt at giving the same interface. May not be correct use of locks?</p>
+	      </section>
+
+	      <section>
+		<h2>Test results - IORef</h2>
+		<br/><pre><code class="bash">greg@devel5:~/stm-demo$ .cabal-sandbox/bin/demo c 3 3 0 +RTS -N4
+...
+Wrote 1
+Just 2
+Just 1
+Just 1
+Just 2
+Chan: fromList [1,2,2,1,2,1,1,1,2,1,2,2,1,2,2,1,1,1] ...
+  min': 1 max': 3 len': 6
+		</code></pre><br/>
+		<div class="splitLeft" style="width:25%;text-align:left;">
+		  <p><a href="https://github.com/ImAlsoGreg/stm-demo/blob/master/Data/CExtraChan.hs">IORef-based</a> 
+		    version, just for fun (not threadsafe).</p><p><strong><em>Corrupted data!</em></strong></p>
+		  <p>Does work single-threaded though</p>
+		</div>
+		<div class="splitRight" style="width:75%;">
+		  <pre><code class="haskell">writeExtraChan :: (Ord a) =&gt; ExtraChan a -&gt; a -&gt; IO ()
+writeExtraChan c a = do
+  modifyIORef (chan c) (S.|&gt; a)
+  modifyIORef (minEver c) $ \oldMin -&gt; min a oldMin
+  modifyIORef (maxEver c) $ \oldMax -&gt; max a oldMax
+  modifyIORef (lLength c) $ (+1)</code></pre>
+		</div>
+	      </section>
+
+	      <section>
+		<h2>Takehome</h2>
+		<br/><br/>
+		<ol>
+		  <li>STM = <em>Composable</em> Memory Transactions</li>
+		  <li>Easily built new thread-safe data structure from other thread-safe structures</li>
+		  <li>Fast enough for brain decoding</li>
+		  <li>Simple enough for scientists</li>
+		  <li>Caveats: Large transactions may keep failing, no fairness guarentee</li>
+		  <li>Haskell is Empowering - Concurrency just one example</li>
+		  <li>Wonderful explanations and many more topics in <a href="http://chimera.labs.oreilly.com/books/1230000000929">Simon Marlow's book</a></li>
+		</ol>
+		<br/><br/><br/>
+		<h4>Thanks for listening! Feedback always welcome, here and online.</h4>
+		<br/>
+		<a href="http://github.com/ImAlsoGreg/stm-demo.git">github.com/ImAlsoGreg/stm-demo.git</a><br/>
+		<a href="https://github.com/ImAlsoGreg/ImAlsoGreg.github.io/tree/master/build/slides">https://github.com/ImAlsoGreg/ImAlsoGreg.github.io/tree/master/build/slides</a><br/>
+		<p>imalsogreg gmail com</p>
+	      </section>
+	    </div>
+	    
+	  </div>
+	  
+	  <script src="lib/js/head.min.js"></script>
+	  <script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+
+			        width:  1200,
+			        height: 900,
+
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				parallaxBackgroundImage: './stm-demo-slides/img/CBMM_Logo_Big_Light.png',
+				parallaxBackgroundSize: '2100px 1200px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
