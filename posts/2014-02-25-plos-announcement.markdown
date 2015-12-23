@@ -6,31 +6,27 @@ title: PLOS's scary-awesome new data-sharing mandate
 
 This might make you squirm with discomfort. But you know it's right... deep down. Or if not, I hope I can convince you.
 
-<blockquote>
-  <p>We are now revising our data-sharing policy for all PLOS journals: <em>authors must make all data publicly available, without restriction, immediately upon publication of the article</em>. Beginning March 3rd, 2014, all authors who submit to a PLOS journal will be asked to provide a Data Availability Statement, describing where and how others can access each dataset that underlies the findings.</p>
-  <footer>
-    <cite>
-      <a href="http://blogs.plos.org/everyone/2014/02/24/plos-new-data-policy-public-access-data/">
-	PLOS' New Data Policy: Public Access to Data</a> Liz Silva, Feb 24, 2014
-    </cite>
-  </footer>
-</blockquote>
+> We are now revising our data-sharing policy for all PLOS journals: 
+> <em>authors must make all data publicly available, without restriction, 
+> immediately upon publication of the article</em>. Beginning March 3rd, 
+> 2014, all authors who submit to a PLOS journal will be asked to provide 
+> a Data Availability Statement, describing where and how others can access 
+> each dataset that underlies the findings.
 
-<p>And an update to their policy page:</p>
+ - [PLOS' New Data Policy: Public Access to Data](http://blogs.plos.org/everyone/2014/02/24/plos-new-data-policy-public-access-data/), Liz Silva, Feb 24, 2014
 
-<blockquote>
-  <p>PLOS defines the &quot;minimal dataset&quot; to consist of the dataset used to reach the conclusions drawn in the manuscript with related metadata and methods, and any additional data required to replicate the reported study findings in their entirety. Core descriptive data, methods, and study results should be included within the main paper, regardless of data deposition. PLOS does not accept references to &quot;data not shown&quot;.</p>
-  <footer>
-    <cite>
-      <a href="http://www.plos.org/data-access-for-the-open-access-literature-ploss-data-policy/">Data Access for the Open Access Literature: PLOS' Data Policy</a> 
-      Theo Bloom
-    </cite>
-  </footer>
-</blockquote>
+And an update to their policy page:
 
-Are you thinking, &quot;I spent years collecting that data, and some modeler is going to mine it for all the interesting results? How can I get a high-impact factor paper and a job with that type of scoop target on my back?&quot; 
+> PLOS defines the "minimal dataset" to consist of the dataset used to reach 
+> the conclusions drawn in the manuscript with related metadata and methods, 
+> and any additional data required to replicate the reported study findings 
+> in their entirety. Core descriptive data, methods, and study results should 
+> be included within the main paper, regardless of data deposition. PLOS does 
+> not accept references to "data not shown".
 
-Or, &quot;God what if someone discovers a bug in my code, it turns out my finding isn't real - will I be kicked out of science?&quot;  
+ - [Data Access for the Open Access Literature]("http://www.plos.org/data-access-for-the-open-access-literature-ploss-data-policy/), PLOS' Data Policy, Theo Bloom
+
+Are you thinking, *I spent years collecting that data, and some modeler is going to mine it for all the interesting results? How can I get a high-impact factor paper and a job with that type of scoop target on my back*? Or, *God what if someone discovers a bug in my code, it turns out my finding isn't real - will I be kicked out of science*?  
 
 Hold that thought, because I want to tell you why this scary policy is actually not a threat to your career.  On the contrary, if you have felt like academia brought you in as an idealist, and slowly crushed you into a career pragmatist, there may be something interesting for you here.
 
@@ -77,11 +73,11 @@ A few predictions for how we'll rank scientists, when the idea of the <span styl
 
 <br/>
 
-So, what do these predictions have in common? I don't know if it's a happy coincidence, or foresight on the part of PLOS and other leaders in the open science movement, but there is one clear thread here. **Open-science mandates could change the reward structure in a way that brings pro-social behavior into better alignment with individual career ambition** and *that* is the killer app. 
+So, what do these predictions have in common? I don't know if it's a happy coincidence, or foresight on the part of PLOS and other leaders in the open science movement, but there is one clear thread here. **Open-science mandates could change the reward structure in a way that brings pro-social behavior into better alignment with individual career ambition** and that is the killer app. 
 
 Think about science as it's practiced now. What's the relationship between the career ambitions of the average scientist and the greater good of the science community? Do they always line up? I'm talking about the daily pressures that get to all of us. That one behavioral assay that didn't work out like the other three, and our PI is telling us, &quot;Let's keep the story simple&quot;. The vague sense, &quot;That matlab code handed down from the previous postdoc - it gives me a nice effect on my data, but I'm not really sure how it works&quot;... 
 
-&quot;*I believe in not cutting corners, in doing solid science. I just have to secure my career first with a high-impact paper.*&quot;
+*"I believe in not cutting corners, in doing solid science. I just have to secure my career first with a high-impact paper."*
 
 The story is different in the pharmaceutical industry, where being wrong about basic science could cost you millions of dollars in dead-end clinical trials. The incentives in Pharma, at the preclinical stage, are not to get a glamorous publication, but to be right. And when the Pharma companies started noticing that some academic science results are failing as a foundation for new work, they re-ran the published experiments and found that [89% of landmark papers in cancer biology fail to replicate](http://www.nature.com/nature/journal/v483/n7391/full/483531a.html). Money that should be going toward curing cancer, is instead funding those desperate pangs for academic job security.
 
