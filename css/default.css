@@ -1,1 +1,81 @@
-body{color:black;font-size:20px}div#header{border-bottom:2px solid black;margin-bottom:30px;padding:12px 0px 12px 0px}div#logo a{color:black;float:left;font-size:18px;font-weight:bold;text-decoration:none}div#header #navigation{text-align:right}div#header #navigation a{color:black;font-size:18px;font-weight:bold;margin-left:12px;text-decoration:none;text-transform:uppercase}div#footer{border-top:solid 2px black;color:#555;font-size:12px;margin-top:30px;padding:12px 0px 12px 0px;text-align:right}h1{font-size:24px}h2{font-size:20px}div.info{color:#555;font-size:14px;font-style:italic}.blockquote{border-radius:10px 4px 10px 4px;background:#E5E5FF url('yarden.png') no-repeat right bottom;quotes:"\201C""\201D""\2018""\2019";padding:.5em 10px;text-align:left;color:333355;font-size:20px;width:300px}.blockquote:before{color:#000;content:open-quote;font-size:4em;line-height:.1em;margin-right:.25em;vertical-align:-.2em}#content{margin:0 auto;padding-top:70px;width:70%;font-size:14pt;font:cambria, arial}
+body {
+    color: black;
+    font-size: 20px;
+}
+
+div#header {
+    border-bottom: 2px solid black;
+    margin-bottom: 30px;
+    padding: 12px 0px 12px 0px;
+}
+
+div#logo a {
+    color: black;
+    float: left;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+div#header #navigation {
+    text-align: right;
+}
+
+div#header #navigation a {
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 12px;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+div#footer {
+    border-top: solid 2px black;
+    color: #555;
+    font-size: 12px;
+    margin-top: 30px;
+    padding: 12px 0px 12px 0px;
+    text-align: right;
+}
+
+h1 {
+    font-size: 24px;
+}
+
+h2 {
+    font-size: 20px;
+}
+
+div.info {
+    color: #555;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.blockquote {
+  border-radius: 10px 4px 10px 4px;
+  background:#E5E5FF url('yarden.png') no-repeat right bottom;
+  quotes: "\201C""\201D""\2018""\2019";
+  padding: .5em 10px;
+  text-align: left;
+  color: 333355;
+  font-size: 20px;
+  width: 300px;
+}
+.blockquote:before {
+  color: #000;
+  content: open-quote;
+  font-size: 4em;
+  line-height: .1em;
+  margin-right: .25em;
+  vertical-align: -.2em;
+}
+
+#content {
+    margin: 0 auto;
+    padding-top:70px;
+    width: 70%;
+    font-size:14pt;
+    font: cambria, arial
+}
